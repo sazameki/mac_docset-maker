@@ -19,6 +19,8 @@
     
     NSMutableArray  *mClassInfos;
     NSMutableArray  *mGlobalInfos;
+    
+    DSInformation   *mLastInfo;
 }
 
 - (id)initWithPath:(NSString *)path;

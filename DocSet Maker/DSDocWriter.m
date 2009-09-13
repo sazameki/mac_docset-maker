@@ -9,9 +9,54 @@
 #import "DSDocWriter.h"
 #import "DSInfoRepository.h"
 #import "DSInformation.h"
+#import "NSString+Tokenizer.h"
 
 
 @implementation DSDocWriter
+
+- (BOOL)writeInstanceVariablesOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
+{
+    NSArray *vars = [aClassInfo childInfosWithTag:@"@var"];
+    if ([vars count] == 0) {
+        return NO;
+    }
+
+    [htmlStr appendString:@"<h2>Instance Variables</h2>"];
+
+    for (DSInformation *aVarInfo in vars) {
+        [htmlStr appendFormat:@"<h3>%@</h3>", aVarInfo.value];
+
+        NSArray *abstracts = [aVarInfo childInfosWithTag:@"@abstract"];
+        if ([abstracts count] > 0) {
+            DSInformation *abstractInfo = [abstracts objectAtIndex:0];
+            [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+        }
+
+        NSArray *decls = [aVarInfo childInfosWithTag:@"@declare"];
+        if ([decls count] > 0) {
+            DSInformation *declInfo = [decls objectAtIndex:0];
+            [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+        }
+        
+        NSArray *discussions = [aVarInfo childInfosWithTag:@"@discussion"];
+        for (DSInformation *aDiscussInfo in discussions) {
+            [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+        }
+        
+        // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
+        /*
+        NSArray *declareds = [aVarInfo childInfosWithTag:@"*declared-in"];
+        if ([declareds count] > 0) {
+            DSInformation *declaredInfo = [declareds objectAtIndex:0];
+            [htmlStr appendString:@"<h5>Declared In</h5>"];
+            NSString *declaringFilePath = declaredInfo.value;
+            [htmlStr appendFormat:@"<p>%@</p>", [declaringFilePath lastPathComponent]];
+        } 
+         */
+    }
+    
+    return YES;
+}
 
 - (BOOL)writeInstanceMethodsOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
 {
@@ -19,37 +64,159 @@
     if ([methods count] == 0) {
         return NO;
     }
-
-    [htmlStr appendString:@"<h2>Instance Methods</h2>"];
     
+    NSMutableArray *classMethodInfos = [NSMutableArray array];
+    NSMutableArray *instanceMethodInfos = [NSMutableArray array];
+
     for (DSInformation *aMethodInfo in methods) {
-        [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/instm/%@/%@\"></a>", aClassInfo.value, aMethodInfo.value];
-        [htmlStr appendFormat:@"<h3>%@</h3>", aMethodInfo.value];
-        
-        NSArray *abstracts = [aMethodInfo childInfosWithTag:@"@abstract"];
-        if ([abstracts count] > 0) {
-            DSInformation *abstractInfo = [abstracts objectAtIndex:0];
-            [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+        NSString *decl = nil;
+        NSArray *decls = [aMethodInfo childInfosWithTag:@"@declare"];
+        if ([decls count] > 0) {
+            DSInformation *declInfo = [decls objectAtIndex:0];
+            decl = declInfo.value;
         }
-        
-        NSArray *returns = [aMethodInfo childInfosWithTag:@"@return"];
-        if ([returns count] > 0) {
-            DSInformation *returnInfo = [returns objectAtIndex:0];
-            [htmlStr appendString:@"<h5>Return Value</h5>"];
-            [htmlStr appendFormat:@"<p>%@</p>", returnInfo.value];
+        if (decl && [decl hasPrefix:@"static"]) {
+            [classMethodInfos addObject:aMethodInfo];
+        } else {
+            [instanceMethodInfos addObject:aMethodInfo];
         }
+    }
+    
+    if ([classMethodInfos count] > 0) {
+        [htmlStr appendString:@"<h2>Class Methods</h2>"];
         
-        NSArray *discussions = [aMethodInfo childInfosWithTag:@"@discussion"];
-        for (DSInformation *aDiscussInfo in discussions) {
-            [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
-        }
+        for (DSInformation *aMethodInfo in classMethodInfos) {
+            [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/clm/%@/%@\"></a>", aClassInfo.value, aMethodInfo.value];
+            [htmlStr appendFormat:@"<h3>%@</h3>", aMethodInfo.value];
+            
+            NSArray *decls = [aMethodInfo childInfosWithTag:@"@declare"];
+            if ([decls count] > 0) {
+                DSInformation *declInfo = [decls objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+            }
+            
+            NSArray *abstracts = [aMethodInfo childInfosWithTag:@"@abstract"];
+            if ([abstracts count] > 0) {
+                DSInformation *abstractInfo = [abstracts objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+            }
+            
+            NSArray *params = [aMethodInfo childInfosWithTag:@"@param"];
+            if ([params count] > 0) {
+                [htmlStr appendString:@"<h5>Parameters</h5>"];
+                [htmlStr appendString:@"<dl class=\"termdef\">"];
+                for (DSInformation *aParamInfo in params) {
+                    NSString *value = aParamInfo.value;
+                    NSEnumerator *paramEnum = [value tokenize:@" "];
+                    NSString *name = [paramEnum nextObject];
+                    if (name) {
+                        NSString *exp = [paramEnum nextObject];
+                        NSString *str;
+                        while (str = [paramEnum nextObject]) {
+                            exp = [exp stringByAppendingString:@" "];
+                            exp = [exp stringByAppendingString:str];
+                        }
+                        if (exp) {
+                            [htmlStr appendFormat:@"<dt>%@</dt><dd>%@</dd>", name, exp];
+                        } else {
+                            [htmlStr appendFormat:@"<dt>%@</dt><dd></dd>", name];
+                        }
+                    }
+                }
+                [htmlStr appendString:@"</dl>"];
+            }
+            
+            NSArray *returns = [aMethodInfo childInfosWithTag:@"@return"];
+            if ([returns count] > 0) {
+                DSInformation *returnInfo = [returns objectAtIndex:0];
+                [htmlStr appendString:@"<h5>Return Value</h5>"];
+                [htmlStr appendFormat:@"<p>%@</p>", returnInfo.value];
+            }
+            
+            NSArray *discussions = [aMethodInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+            }
+            
+            // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
+            /*
+            NSArray *declareds = [aMethodInfo childInfosWithTag:@"*declared-in"];
+            if ([declareds count] > 0) {
+                DSInformation *declaredInfo = [declareds objectAtIndex:0];
+                [htmlStr appendString:@"<h5>Declared In</h5>"];
+                NSString *declaringFilePath = declaredInfo.value;
+                [htmlStr appendFormat:@"<p>%@</p>", [declaringFilePath lastPathComponent]];
+            }
+             */
+        }        
+    }
+
+    if ([instanceMethodInfos count] > 0) {
+        [htmlStr appendString:@"<h2>Instance Methods</h2>"];
         
-        NSArray *declareds = [aMethodInfo childInfosWithTag:@"*declared-in"];
-        if ([declareds count] > 0) {
-            DSInformation *declaredInfo = [declareds objectAtIndex:0];
-            [htmlStr appendString:@"<h5>Declared In</h5>"];
-            NSString *declaringFilePath = declaredInfo.value;
-            [htmlStr appendFormat:@"<p>%@</p>", [declaringFilePath lastPathComponent]];
+        for (DSInformation *aMethodInfo in instanceMethodInfos) {
+            [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/instm/%@/%@\"></a>", aClassInfo.value, aMethodInfo.value];
+            [htmlStr appendFormat:@"<h3>%@</h3>", aMethodInfo.value];
+            
+            NSArray *decls = [aMethodInfo childInfosWithTag:@"@declare"];
+            if ([decls count] > 0) {
+                DSInformation *declInfo = [decls objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+            }
+            
+            NSArray *abstracts = [aMethodInfo childInfosWithTag:@"@abstract"];
+            if ([abstracts count] > 0) {
+                DSInformation *abstractInfo = [abstracts objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+            }
+            
+            NSArray *params = [aMethodInfo childInfosWithTag:@"@param"];
+            if ([params count] > 0) {
+                [htmlStr appendString:@"<h5>Parameters</h5>"];
+                [htmlStr appendString:@"<dl class=\"termdef\">"];
+                for (DSInformation *aParamInfo in params) {
+                    NSString *value = aParamInfo.value;
+                    NSEnumerator *paramEnum = [value tokenize:@" "];
+                    NSString *name = [paramEnum nextObject];
+                    if (name) {
+                        NSString *exp = [paramEnum nextObject];
+                        NSString *str;
+                        while (str = [paramEnum nextObject]) {
+                            exp = [exp stringByAppendingString:@" "];
+                            exp = [exp stringByAppendingString:str];
+                        }
+                        if (exp) {
+                            [htmlStr appendFormat:@"<dt>%@</dt><dd>%@</dd>", name, exp];
+                        } else {
+                            [htmlStr appendFormat:@"<dt>%@</dt><dd></dd>", name];
+                        }
+                    }
+                }
+                [htmlStr appendString:@"</dl>"];
+            }
+            
+            NSArray *returns = [aMethodInfo childInfosWithTag:@"@return"];
+            if ([returns count] > 0) {
+                DSInformation *returnInfo = [returns objectAtIndex:0];
+                [htmlStr appendString:@"<h5>Return Value</h5>"];
+                [htmlStr appendFormat:@"<p>%@</p>", returnInfo.value];
+            }
+            
+            NSArray *discussions = [aMethodInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+            }
+            
+            // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
+            /*
+            NSArray *declareds = [aMethodInfo childInfosWithTag:@"*declared-in"];
+            if ([declareds count] > 0) {
+                DSInformation *declaredInfo = [declareds objectAtIndex:0];
+                [htmlStr appendString:@"<h5>Declared In</h5>"];
+                NSString *declaringFilePath = declaredInfo.value;
+                [htmlStr appendFormat:@"<p>%@</p>", [declaringFilePath lastPathComponent]];
+            }
+             */
         }
     }
     
@@ -109,6 +276,7 @@
         }
     }
 
+    [self writeInstanceVariablesOfClassInfo:aClassInfo intoString:htmlStr];
     [self writeInstanceMethodsOfClassInfo:aClassInfo intoString:htmlStr];
 
     [htmlStr appendString:@"</div>"];
@@ -255,6 +423,12 @@
             [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
         }
         
+        NSArray *decls = [aFunctionInfo childInfosWithTag:@"@declare"];
+        if ([decls count] > 0) {
+            DSInformation *declInfo = [decls objectAtIndex:0];
+            [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+        }
+        
         NSArray *returns = [aFunctionInfo childInfosWithTag:@"@return"];
         if ([returns count] > 0) {
             DSInformation *returnInfo = [returns objectAtIndex:0];
@@ -267,13 +441,14 @@
             [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
         }
         
-        NSArray *declareds = [aFunctionInfo childInfosWithTag:@"*declared-in"];
+        // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
+/*      NSArray *declareds = [aFunctionInfo childInfosWithTag:@"*declared-in"];
         if ([declareds count] > 0) {
             DSInformation *declaredInfo = [declareds objectAtIndex:0];
             [htmlStr appendString:@"<h5>Declared In</h5>"];
             NSString *declaringFilePath = declaredInfo.value;
             [htmlStr appendFormat:@"<p>%@</p>", [declaringFilePath lastPathComponent]];
-        }        
+        } */
     }
     
     [htmlStr appendString:@"</div>"];
@@ -386,10 +561,22 @@
             
             NSArray *methodInfos = [aClassInfo childInfosWithTag:@"@method"];
             for (DSInformation *aMethodInfo in methodInfos) {
+                NSString *decl = nil;
+                NSArray *decls = [aMethodInfo childInfosWithTag:@"@declare"];
+                if ([decls count] > 0) {
+                    DSInformation *declInfo = [decls objectAtIndex:0];
+                    decl = declInfo.value;
+                }
+
+                NSString *type = @"instm";
+                if (decl && [decl hasPrefix:@"static"]) {
+                    type = @"clm";
+                }
+
                 [xmlStr appendString:@"<Token>\n"];
-                [xmlStr appendFormat:@"<TokenIdentifier>//apple_ref/cpp/instm/%@/%@</TokenIdentifier>\n", aClassInfo.value, aMethodInfo.value];
+                [xmlStr appendFormat:@"<TokenIdentifier>//apple_ref/cpp/%@/%@/%@</TokenIdentifier>\n", type, aClassInfo.value, aMethodInfo.value];
                 [xmlStr appendFormat:@"<Path>referencelibrary/%@/Classes/%@/index.html</Path>\n", aGroupName, aClassInfo.value];
-                [xmlStr appendFormat:@"<Anchor>//apple_ref/cpp/instm/%@/%@</Anchor>\n", aClassInfo.value, aMethodInfo.value];
+                [xmlStr appendFormat:@"<Anchor>//apple_ref/cpp/%@/%@/%@</Anchor>\n", type, aClassInfo.value, aMethodInfo.value];
                 [xmlStr appendString:@"</Token>\n"];
             }
             [xmlStr appendString:@"\n"];

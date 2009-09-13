@@ -145,7 +145,7 @@
     return [mSource substringWithRange:NSMakeRange(startPos, length)];
 }
 
-- (void)parseNormalComment
+- (BOOL)parseNormalComment
 {
     DSInformation *currentInfo = nil;
     DSInformation *prevInfo = nil;
@@ -170,7 +170,7 @@
                 }
                 if (lastClassInfo && currentInfo != lastClassInfo) {
                     [lastClassInfo addChildInformation:currentInfo];
-                } else if (![currentInfo.tagName isEqualToString:@"@class"]) {
+                } else if (![currentInfo.tagName isEqualToString:@"@class"] && ![currentInfo.tagName isEqualToString:@"@struct"]) {
                     [mGlobalInfos addObject:currentInfo];
                 }
             }
@@ -186,7 +186,7 @@
                 currentInfo = [[DSInformation alloc] initWithTag:tagName];
                 currentInfo.value = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
                 
-                if ([tagName isEqualToString:@"@class"]) {
+                if ([tagName isEqualToString:@"@class"] || [tagName isEqualToString:@"@struct"]) {
                     [mClassInfos addObject:currentInfo];
                 }
                 
@@ -215,6 +215,9 @@
             }
         }
     }
+    
+    mLastInfo = currentInfo;
+    return (currentInfo? YES: NO);
 }
 
 - (void)parseLineComment
@@ -244,8 +247,29 @@
             if (c1 == '/') {
                 unichar c2 = [self getNextCharacter];
                 if (c2 == '*') {
-                    [self parseNormalComment];
-                    // TODO: HeaderDoc用のコメントが取得できた場合は宣言も取得する。
+                    if ([self parseNormalComment]) {
+                        [self skipWhiteSpaces];
+                        
+                        unichar c1 = [self lookAtNextCharacter];
+                        
+                        NSMutableString *declStr = [NSMutableString string];
+                        while ([self hasMoreCharacters]) {
+                            unichar c = [self getNextCharacter];
+                            if (c == '{' || c == ';' || c == '\r' || c== '\n') {
+                                break;
+                            }
+                            [declStr appendFormat:@"%C", c];
+
+                            // Support for Macros
+                            if (c1 == '#' && c == ')') {
+                                break;
+                            }
+                        }
+
+                        DSInformation *declInfo = [[[DSInformation alloc] initWithTag:@"@declare"] autorelease];
+                        declInfo.value = [declStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                        [mLastInfo addChildInformation:declInfo];
+                    }
                 } else if (c2 == '/') {
                     [self parseLineComment];
                 }

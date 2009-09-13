@@ -94,13 +94,13 @@ a:hover { color: #7b0; text-decoration: underline; }
 
 
 
-.doc_refclassbody h1 {
+.doc_body h1 {
 	color:#222;
 	padding-bottom: 20px;
 	font-size: 30px;
 }
 
-.doc_refclassbody h2 {
+.doc_body h2 {
 	width: 100%;
 	color:#222;
 	border-bottom: 1px solid #888;
@@ -108,33 +108,33 @@ a:hover { color: #7b0; text-decoration: underline; }
 	font-size: 24px;
 }
 
-.doc_refclassbody h3 {
+.doc_body h3 {
 	width: 100%;
 	font-size: 18px;
 	padding-left: 10px;
 	padding-top: 20px;
 }
 
-.doc_refclassbody p {
+.doc_body p {
 	padding-left: 30px;
 }
 
-.doc_refclassbody ul {
+.doc_body ul {
 	list-style-type: none;
 }
 
-.doc_refclassbody h5.tight {
+.doc_body h5 {
 	font-size: 12px;
 	margin: 0;
 	padding-left: 10px;
 	padding-bottom: 2px;
 }
 
-.doc_refclassbody dl.termdef {
+.doc_body dl.termdef {
 	padding-left: 30px;
 }
 
-.doc_refclassbody dl.termdef p {
+.doc_body dl.termdef p {
 	margin: 0;
 	padding: 0;
 	padding-left: 30px;
