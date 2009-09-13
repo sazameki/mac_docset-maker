@@ -7,6 +7,9 @@
 //
 
 #import "DSMakerDocument.h"
+#import "DSCommentParser.h"
+#import "DSInfoRepository.h"
+#import "DSDocWriter.h"
 
 
 @implementation DSMakerDocument
@@ -29,6 +32,8 @@
         self.publisherName = @"";
         self.publisherIdentifier = @"";
         self.copyright = @"";
+        
+        mParseTargets = [[NSMutableArray array] retain];
     }
     return self;
 }
@@ -43,6 +48,8 @@
     [mPublisherIdentifier release];
     [mCopyright release];
 
+    [mParseTargets release];
+    
     [super dealloc];
 }
 
@@ -138,6 +145,9 @@
 
 - (NSString *)rootPath
 {
+    if ([mRootPath length] == 0) {
+        return nil;
+    }
     return [mRootPath stringByAbbreviatingWithTildeInPath];
 }
 
@@ -155,7 +165,11 @@
     NSOpenPanel *openPanel = [NSOpenPanel openPanel];
     [openPanel setCanChooseFiles:NO];
     [openPanel setCanChooseDirectories:YES];
-    [openPanel beginSheetForDirectory:[@"~" stringByExpandingTildeInPath]
+    NSString *basePath = [self.rootPath stringByExpandingTildeInPath];
+    if (!basePath) {
+        basePath = [@"~" stringByExpandingTildeInPath];
+    }
+    [openPanel beginSheetForDirectory:basePath
                                  file:nil
                        modalForWindow:oMainWindow
                         modalDelegate:self
@@ -170,9 +184,74 @@
     }
 }
 
+- (void)checkParseTargetFileAtPath:(NSString *)path
+{
+    NSArray *targetExtensions = [NSArray arrayWithObjects:@"h", nil];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL isDir;
+    if (![fileManager fileExistsAtPath:path isDirectory:&isDir] && !isDir) {
+        return;
+    }
+    
+    if (isDir) {
+        NSArray *children = [fileManager directoryContentsAtPath:path];
+        for (NSString *childName in children) {
+            if ([childName isEqualToString:@"build"]) {
+                continue;
+            }
+            NSString *childPath = [path stringByAppendingPathComponent:childName];
+
+            NSString *extension = [[childPath pathExtension] lowercaseString];
+            if ([targetExtensions containsObject:extension]) {
+                [mParseTargets addObject:childPath];
+            }            
+        }
+    }
+}
+
 - (IBAction)startBuild:(id)sender
 {
-    // TODO: Implement Building
+    [[DSInfoRepository sharedRepository] clearAllInfos];
+    [mParseTargets removeAllObjects];
+    [self checkParseTargetFileAtPath:[self.rootPath stringByExpandingTildeInPath]];
+    
+    for (NSString *aPath in mParseTargets) {
+        DSCommentParser *parser = [[DSCommentParser alloc] initWithPath:aPath];
+        [parser parse];
+        [parser release];
+    }
+    
+    
+    NSMutableDictionary *properties = [NSMutableDictionary dictionary];
+    
+    if (self.rootPath) {
+        [properties setObject:self.rootPath forKey:@"Root Path"];
+    }
+    
+    if (self.docSetName) {
+        [properties setObject:self.docSetName forKey:@"DocSet Name"];
+    }
+    if (self.bundleIdentifier) {
+        [properties setObject:self.bundleIdentifier forKey:@"Bundle Identifier"];
+    }
+    if (self.versionNumber) {
+        [properties setObject:self.versionNumber forKey:@"Version Number"];
+    }
+    if (self.publisherName) {
+        [properties setObject:self.publisherName forKey:@"Publisher Name"];
+    }
+    if (self.publisherIdentifier) {
+        [properties setObject:self.publisherIdentifier forKey:@"Publisher Identifier"];
+    }
+    if (self.copyright) {
+        [properties setObject:self.copyright forKey:@"Copyright"];
+    }
+    
+    
+    DSDocWriter *writer = [[DSDocWriter alloc] init];
+    [writer writeDocumentAtPath:[@"~/Desktop" stringByExpandingTildeInPath] properties:properties];
+    [writer release];
 }
 
 @end

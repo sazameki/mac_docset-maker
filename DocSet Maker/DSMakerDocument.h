@@ -21,6 +21,8 @@
     NSString    *mCopyright;
     
     NSString    *mRootPath;
+    
+    NSMutableArray  *mParseTargets;
 }
 
 @property(copy, readwrite) NSString     *rootPath;

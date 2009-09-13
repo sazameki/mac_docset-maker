@@ -1,0 +1,141 @@
+body { margin-bottom: 100px; }
+
+a:link { color: #490; }
+a:visited { color: #490; }
+a:hover { color: #7b0; text-decoration: underline; }
+
+.toc_body,.doc_body,.doc_refbody,.doc_refclassbody {
+	width: 720px;
+	margin: 10px auto;
+	
+	color: #444;
+}
+
+.toc_body h1,h2,h3 {
+	color:#222;
+	padding-top: 5px;
+	padding-bottom: 10px;
+}
+
+.doc_body h1,h2,h3 {
+	color:#222;
+	padding-top: 5px;
+	padding-bottom: 10px;
+}
+
+.doc_refbody h1 {
+	color:#222;
+	padding-bottom: 20px;
+	font-size: 30px;
+}
+
+.ref_col2 {
+	float: left;
+	width: 320px;
+	padding-bottom: 20px;
+	padding-left: 24px;
+}
+
+.ref_col3 {
+	float: left;
+	width: 224px;
+	padding-bottom: 20px;
+	padding-left: 12px;
+}
+
+.ref_col2 ul { list-style-type: none; margin-left: 0; padding-left: 15px; }
+.ref_col3 ul { list-style-type: none; margin-left: 0; padding-left: 15px; }
+
+.ref_col2 h2 { width: 100%; padding-bottom: 4px; border-bottom: 1px solid #888; }
+.ref_col2 h2 { width: 100%; padding-bottom: 4px; }
+.ref_col2 h3 { width: 100%; padding-bottom: 4px; }
+
+.ref_col3 h2 { width: 100%; padding-bottom: 4px; border-bottom: 1px solid #888; }
+.ref_col3 h2 { width: 100%; padding-bottom: 4px; }
+.ref_col3 h3 { width: 100%; padding-bottom: 4px; }
+
+.ref_info {
+    border: 1px solid #aaa;
+    padding: 8px;
+    margin-left: 40px;
+    margin-right: 40px;
+    margin-bottom: 60px;
+}
+
+.doc_category {
+	padding-top: 10px;
+	padding-left: 20px;
+	padding-bottom: 30px;
+	border-top: 1px solid #888;
+}
+
+.doc_category p {
+	padding-left: 20px;
+}
+
+.doc_footer {
+	clear: both;
+	margin-top: 20px;
+	padding-top: 10px;
+	border-top: 1px solid #888;
+	text-align: center;
+}
+
+
+.toc_body h2 {
+    width: 100%;
+    font-size: 22px;
+    background-color: #efa;
+}
+
+.toc_body .ref_col3 h3 {
+	border-bottom: 1px solid #888;
+}
+
+
+
+.doc_refclassbody h1 {
+	color:#222;
+	padding-bottom: 20px;
+	font-size: 30px;
+}
+
+.doc_refclassbody h2 {
+	width: 100%;
+	color:#222;
+	border-bottom: 1px solid #888;
+	padding-bottom: 4px;
+	font-size: 24px;
+}
+
+.doc_refclassbody h3 {
+	width: 100%;
+	font-size: 18px;
+	padding-left: 10px;
+	padding-top: 20px;
+}
+
+.doc_refclassbody p {
+	padding-left: 30px;
+}
+
+.doc_refclassbody ul {
+	list-style-type: none;
+}
+
+.doc_refclassbody h5.tight {
+	font-size: 12px;
+	margin: 0;
+	padding-left: 10px;
+	padding-bottom: 2px;
+}
+
+.doc_refclassbody dl.termdef {
+	padding-left: 30px;
+}
+
+.doc_refclassbody dl.termdef p {
+	margin: 0;
+	padding: 0;
+	padding-left: 30px;
+}

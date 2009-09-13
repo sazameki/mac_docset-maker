@@ -14,6 +14,12 @@
 		8D15AC310486D014006FF6A4 /* DSMakerDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4ACFDCFA73011CA2CEA /* DSMakerDocument.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC320486D014006FF6A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4B0FDCFA73011CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D15AC340486D014006FF6A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
+		8EFBDAD8105D140200E3EBAC /* DSCommentParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 8EFBDAD7105D140200E3EBAC /* DSCommentParser.m */; };
+		8EFBDADB105D142700E3EBAC /* DSInfoRepository.m in Sources */ = {isa = PBXBuildFile; fileRef = 8EFBDADA105D142700E3EBAC /* DSInfoRepository.m */; };
+		8EFBDADF105D14FC00E3EBAC /* DSInformation.m in Sources */ = {isa = PBXBuildFile; fileRef = 8EFBDADE105D14FC00E3EBAC /* DSInformation.m */; };
+		8EFBDDF1105D49D800E3EBAC /* DSDocWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 8EFBDDF0105D49D800E3EBAC /* DSDocWriter.m */; };
+		8EFBDF5C105D598B00E3EBAC /* karakuri_style.css in Resources */ = {isa = PBXBuildFile; fileRef = 8EFBDF5A105D598B00E3EBAC /* karakuri_style.css */; };
+		8EFBDF5D105D598B00E3EBAC /* adcstyle.css in Resources */ = {isa = PBXBuildFile; fileRef = 8EFBDF5B105D598B00E3EBAC /* adcstyle.css */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +37,16 @@
 		32DBCF750370BD2300C91783 /* DocSet Maker_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DocSet Maker_Prefix.pch"; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* DocSet Maker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DocSet Maker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8EFBDAD6105D140200E3EBAC /* DSCommentParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSCommentParser.h; sourceTree = "<group>"; };
+		8EFBDAD7105D140200E3EBAC /* DSCommentParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DSCommentParser.m; sourceTree = "<group>"; };
+		8EFBDAD9105D142700E3EBAC /* DSInfoRepository.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSInfoRepository.h; sourceTree = "<group>"; };
+		8EFBDADA105D142700E3EBAC /* DSInfoRepository.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DSInfoRepository.m; sourceTree = "<group>"; };
+		8EFBDADD105D14FC00E3EBAC /* DSInformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSInformation.h; sourceTree = "<group>"; };
+		8EFBDADE105D14FC00E3EBAC /* DSInformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DSInformation.m; sourceTree = "<group>"; };
+		8EFBDDEF105D49D800E3EBAC /* DSDocWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSDocWriter.h; sourceTree = "<group>"; };
+		8EFBDDF0105D49D800E3EBAC /* DSDocWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DSDocWriter.m; sourceTree = "<group>"; };
+		8EFBDF5A105D598B00E3EBAC /* karakuri_style.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = karakuri_style.css; sourceTree = "<group>"; };
+		8EFBDF5B105D598B00E3EBAC /* adcstyle.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = adcstyle.css; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +104,14 @@
 			children = (
 				2A37F4AEFDCFA73011CA2CEA /* DSMakerDocument.h */,
 				2A37F4ACFDCFA73011CA2CEA /* DSMakerDocument.m */,
+				8EFBDAD9105D142700E3EBAC /* DSInfoRepository.h */,
+				8EFBDADA105D142700E3EBAC /* DSInfoRepository.m */,
+				8EFBDADD105D14FC00E3EBAC /* DSInformation.h */,
+				8EFBDADE105D14FC00E3EBAC /* DSInformation.m */,
+				8EFBDAD6105D140200E3EBAC /* DSCommentParser.h */,
+				8EFBDAD7105D140200E3EBAC /* DSCommentParser.m */,
+				8EFBDDEF105D49D800E3EBAC /* DSDocWriter.h */,
+				8EFBDDF0105D49D800E3EBAC /* DSDocWriter.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -104,6 +128,8 @@
 		2A37F4B8FDCFA73011CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				8EFBDF5A105D598B00E3EBAC /* karakuri_style.css */,
+				8EFBDF5B105D598B00E3EBAC /* adcstyle.css */,
 				2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				089C165FFE840EACC02AAC07 /* InfoPlist.strings */,
@@ -169,6 +195,8 @@
 				8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */,
 				1DDD582C0DA1D0D100B32029 /* DSMakerDocument.xib in Resources */,
 				1DDD582D0DA1D0D100B32029 /* MainMenu.xib in Resources */,
+				8EFBDF5C105D598B00E3EBAC /* karakuri_style.css in Resources */,
+				8EFBDF5D105D598B00E3EBAC /* adcstyle.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -181,6 +209,10 @@
 			files = (
 				8D15AC310486D014006FF6A4 /* DSMakerDocument.m in Sources */,
 				8D15AC320486D014006FF6A4 /* main.m in Sources */,
+				8EFBDAD8105D140200E3EBAC /* DSCommentParser.m in Sources */,
+				8EFBDADB105D142700E3EBAC /* DSInfoRepository.m in Sources */,
+				8EFBDADF105D14FC00E3EBAC /* DSInformation.m in Sources */,
+				8EFBDDF1105D49D800E3EBAC /* DSDocWriter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
