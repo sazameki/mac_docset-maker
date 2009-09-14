@@ -309,11 +309,35 @@
 
     [htmlStr appendString:@"<p><a href=\"../../../toc.html\">Back to TOC</a></p>"];
     
-    [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/cl/%@\"></a>", className];
     if (isStruct) {
+        [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/tag/%@\"></a>", className];
         [htmlStr appendFormat:@"<h1>%@ Struct Reference</h1>", className];
     } else {
+        [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/cl/%@\"></a>", className];
         [htmlStr appendFormat:@"<h1>%@ Class Reference</h1>", className];
+    }
+    
+    NSString *decl = [aClassInfo declaration];
+    if (decl) {
+        NSEnumerator *declEnum = [decl tokenize:@":"];
+        [declEnum nextObject];
+        NSString *p2 = [declEnum nextObject];
+        if (p2) {
+            NSEnumerator *parentEnum = [p2 tokenize:@" "];
+            NSString *inheritType = [parentEnum nextObject];
+            NSString *parentClassName = [parentEnum nextObject];
+            if (!parentClassName) {
+                parentClassName = inheritType;
+                inheritType = nil;
+            }
+            [htmlStr appendString:@"<div class=\"class_info_box\">"];
+            if (inheritType) {
+                [htmlStr appendFormat:@"<p>Inherits from %@ (%@)</p>", parentClassName, inheritType];
+            } else {
+                [htmlStr appendFormat:@"<p>Inherits from %@</p>", parentClassName];
+            }
+            [htmlStr appendString:@"</div>"];
+        }
     }
 
     NSArray *abstracts = [aClassInfo childInfosWithTag:@"@abstract"];
@@ -891,6 +915,7 @@
     for (NSString *aGroupName in groupNames) {
         DSInformation *groupInfo = [[DSInfoRepository sharedRepository] groupInfoForName:aGroupName];
         [allClassInfos addObjectsFromArray:[groupInfo childInfosWithTag:@"@class"]];
+        [allClassInfos addObjectsFromArray:[groupInfo childInfosWithTag:@"@struct"]];
     }
     
     NSArray *theAllClassInfos = [allClassInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
@@ -903,9 +928,17 @@
                 theGroupName = aGroupName;
                 break;
             }
+            if ([[theGroupInfo childInfosWithTag:@"@struct"] containsObject:aClassInfo]) {
+                theGroupName = aGroupName;
+                break;
+            }
         }
         if (theGroupName) {
-            [htmlStr appendFormat:@"    <li><a href=\"%@/Classes/%@/index.html#//apple_ref/cpp/cl/%@\" target=\"toc\">%@</a></li>\n", theGroupName, aClassInfo.value, [aClassInfo docIdentifier], aClassInfo.value];
+            if ([aClassInfo.tagName isEqualToString:@"@struct"]) {
+                [htmlStr appendFormat:@"    <li><a href=\"%@/DataTypes/%@/index.html#//apple_ref/cpp/tag/%@\" target=\"toc\">%@</a></li>\n", theGroupName, aClassInfo.value, [aClassInfo docIdentifier], aClassInfo.value];
+            } else {
+                [htmlStr appendFormat:@"    <li><a href=\"%@/Classes/%@/index.html#//apple_ref/cpp/cl/%@\" target=\"toc\">%@</a></li>\n", theGroupName, aClassInfo.value, [aClassInfo docIdentifier], aClassInfo.value];
+            }
         }
     }
 
