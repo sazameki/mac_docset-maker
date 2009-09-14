@@ -121,6 +121,8 @@ a:hover { color: #7b0; text-decoration: underline; }
 
 .doc_body p.declare {
 	padding-left: 60px;
+    font-weight: bold;
+    color: #444;
 }
 
 .doc_body ul {

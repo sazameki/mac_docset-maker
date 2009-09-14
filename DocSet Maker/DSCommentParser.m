@@ -28,7 +28,7 @@
         
         mPos = 0;
         mLength = [mSource length];
-        mInfos = [[NSMutableArray array] retain];
+        mInfos = [[NSMutableSet set] retain];
     }
     return self;
 }
@@ -161,13 +161,6 @@
 
         if (c1 == '*' && c2 == '/') {
             mPos += 2;
-            if (startC == '!') {
-                if (mCurrentClassLevelInfo && currentInfo != mCurrentClassLevelInfo) {
-                    [mCurrentClassLevelInfo addChildInformation:currentInfo];
-                } else {
-                    [mInfos addObject:currentInfo];
-                }
-            }
             break;
         }
         
@@ -182,10 +175,13 @@
                 
                 if ([tagName isEqualToString:@"@class"] || [tagName isEqualToString:@"@struct"]) {
                     mCurrentClassLevelInfo = currentInfo;
+                    [mInfos addObject:currentInfo];
                 } else if ([tagName isEqualToString:@"@function"]) {
                     mCurrentClassLevelInfo = nil;
+                } else if ([tagName isEqualToString:@"@enum"]) {
+                    mCurrentClassLevelInfo = nil;
                 }
-                
+
                 DSInformation *declaredInInfo = [[DSInformation alloc] initWithTag:@"*declared-in"];
                 declaredInInfo.value = mPath;
                 [currentInfo addChildInformation:declaredInInfo];
@@ -195,7 +191,23 @@
                 [currentInfo addChildInformation:prevInfo];
             }
         } else {
-            NSString *line = [self getStringUntilLineEnd];
+            BOOL isAtCommentEnd = NO;
+            NSMutableString *line = [NSMutableString string];
+            while ([self hasMoreCharacters]) {
+                unichar c = [self getNextCharacter];
+                if (c == '\r' || c == '\n') {
+                    break;
+                }
+                if (c == '*') {
+                    unichar c2 = [self lookAtNextCharacter];
+                    if (c2 == '/') {
+                        [self skipNextCharacter];
+                        isAtCommentEnd = YES;
+                        break;
+                    }
+                }
+                [line appendFormat:@"%C", c];
+            }
             if (!prevInfo) {
                 prevInfo = [[[DSInformation alloc] initWithTag:@"@discussion"] autorelease];
                 if (currentInfo) {
@@ -209,6 +221,19 @@
                     [currentInfo addChildInformation:prevInfo];
                 }
             }
+            if (isAtCommentEnd) {
+                break;
+            }
+        }
+    }
+
+    if (startC == '!' && currentInfo) {
+        if (mCurrentClassLevelInfo) {
+            if (currentInfo != mCurrentClassLevelInfo) {
+                [mCurrentClassLevelInfo addChildInformation:currentInfo];
+            }
+        } else {
+            [mInfos addObject:currentInfo];
         }
     }
     
@@ -296,11 +321,10 @@
                 }
             }
         }
-        NSLog(@"Brace Level: %d (%@)", braceLevel, [mPath lastPathComponent]);
     } @catch (NSException *e) {
         NSLog(@"Failed to Parse: %@", mPath);
     } @finally {
-        [[DSInfoRepository sharedRepository] addInfos:mInfos];
+        [[DSInfoRepository sharedRepository] addInfos:[mInfos allObjects]];
     }
     
     return YES;

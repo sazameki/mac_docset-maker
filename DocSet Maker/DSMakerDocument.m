@@ -205,7 +205,7 @@
             NSString *extension = [[childPath pathExtension] lowercaseString];
             if ([targetExtensions containsObject:extension]) {
                 [mParseTargets addObject:childPath];
-            }            
+            }
         }
     }
 }

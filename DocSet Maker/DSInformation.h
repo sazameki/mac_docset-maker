@@ -26,4 +26,12 @@
 
 - (NSArray *)childInfosWithTag:(NSString *)tag;
 
+- (NSString *)declaration;
+- (NSString *)docIdentifier;
+
 @end
+
+
+NSInteger DSCompareInfo(id anInfo1, id anInfo2, void *context);
+
+

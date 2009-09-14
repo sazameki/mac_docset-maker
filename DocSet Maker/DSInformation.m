@@ -9,6 +9,15 @@
 #import "DSInformation.h"
 
 
+NSInteger DSCompareInfo(id anInfo1, id anInfo2, void *context)
+{
+    NSString *value1 = ((DSInformation *)anInfo1).value;
+    NSString *value2 = ((DSInformation *)anInfo2).value;
+	
+    return [value1 compare:value2 options:NSCaseInsensitiveSearch];
+}    
+
+
 @implementation DSInformation
 
 @synthesize tagName = mTagName;
@@ -58,6 +67,55 @@
     for (DSInformation *aChildInfo in mChildInfos) {
         if ([aChildInfo.tagName isEqualToString:tag]) {
             [ret addObject:aChildInfo];
+        }
+    }
+    return ret;
+}
+
+- (NSString *)declaration
+{
+    NSString *decl = nil;
+    NSArray *decls = [self childInfosWithTag:@"@declare"];
+    if ([decls count] > 0) {
+        DSInformation *declInfo = [decls objectAtIndex:0];
+        decl = declInfo.value;
+    }
+    if ([decl length] == 0) {
+        decl = nil;
+    }
+    return decl;
+}
+
+- (NSString *)docIdentifier
+{
+    if (![self.tagName isEqualToString:@"@method"] && ![self.tagName isEqualToString:@"@function"]) {
+        return self.value;
+    }
+    NSString *decl = [self declaration];
+    if (!decl) {
+        return self.value;
+    }
+    NSMutableString *ret = [NSMutableString string];
+    [ret appendFormat:@"%@/", self.value];
+    unsigned pos = 0;
+    unsigned length = [decl length];
+    BOOL wasSpace = NO;
+    while (pos < length) {
+        unichar c = [decl characterAtIndex:pos++];
+        if (isspace((int)c)) {
+            if (!wasSpace) {
+                [ret appendString:@"_"];
+                wasSpace = YES;
+            }
+        } else if (c == '#') {
+            [ret appendString:@"_pp_"];
+            wasSpace = NO;
+        } else if (c == '&') {
+            [ret appendString:@"@"];
+            wasSpace = NO;
+        } else {
+            [ret appendFormat:@"%C", c];
+            wasSpace = NO;
         }
     }
     return ret;
