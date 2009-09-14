@@ -145,3 +145,13 @@ a:hover { color: #7b0; text-decoration: underline; }
 	padding: 0;
 	padding-left: 30px;
 }
+
+.doc_body dl.termdef dt {
+    font-weight: bold;
+}
+
+.doc_body dl.termdef dd {
+    margin-bottom: 18px;
+}
+
+

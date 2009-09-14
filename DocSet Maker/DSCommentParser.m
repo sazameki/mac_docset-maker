@@ -28,7 +28,7 @@
         
         mPos = 0;
         mLength = [mSource length];
-        mInfos = [[NSMutableSet set] retain];
+        mInfos = [[NSMutableArray array] retain];
     }
     return self;
 }
@@ -324,7 +324,7 @@
     } @catch (NSException *e) {
         NSLog(@"Failed to Parse: %@", mPath);
     } @finally {
-        [[DSInfoRepository sharedRepository] addInfos:[mInfos allObjects]];
+        [[DSInfoRepository sharedRepository] addInfos:mInfos];
     }
     
     return YES;

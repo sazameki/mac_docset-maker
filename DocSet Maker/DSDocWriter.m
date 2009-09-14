@@ -94,6 +94,11 @@
                 [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
             }
             
+            NSArray *discussions = [aMethodInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+            }            
+            
             NSArray *params = [aMethodInfo childInfosWithTag:@"@param"];
             if ([params count] > 0) {
                 [htmlStr appendString:@"<h5>Parameters</h5>"];
@@ -124,11 +129,6 @@
                 DSInformation *returnInfo = [returns objectAtIndex:0];
                 [htmlStr appendString:@"<h5>Return Value</h5>"];
                 [htmlStr appendFormat:@"<p>%@</p>", returnInfo.value];
-            }
-            
-            NSArray *discussions = [aMethodInfo childInfosWithTag:@"@discussion"];
-            for (DSInformation *aDiscussInfo in discussions) {
-                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
             }
             
             // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
@@ -162,6 +162,11 @@
                 [htmlStr appendFormat:@"  <p>%@</p>\n", abstractInfo.value];
             }
             
+            NSArray *discussions = [aMethodInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+            }
+            
             NSArray *params = [aMethodInfo childInfosWithTag:@"@param"];
             if ([params count] > 0) {
                 [htmlStr appendString:@"<h5>Parameters</h5>\n"];
@@ -192,11 +197,6 @@
                 DSInformation *returnInfo = [returns objectAtIndex:0];
                 [htmlStr appendString:@"<h5>Return Value</h5>"];
                 [htmlStr appendFormat:@"<p>%@</p>", returnInfo.value];
-            }
-            
-            NSArray *discussions = [aMethodInfo childInfosWithTag:@"@discussion"];
-            for (DSInformation *aDiscussInfo in discussions) {
-                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
             }
             
             // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
@@ -562,6 +562,17 @@
             NSString *decl = [aVarInfo declaration];
             if (decl) {
                 [htmlStr appendFormat:@"<p class=\"declare\">%@</p>", decl];
+            }
+
+            NSArray *abstracts = [aVarInfo childInfosWithTag:@"@abstract"];
+            if ([abstracts count] > 0) {
+                DSInformation *abstractInfo = [abstracts objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+            }            
+
+            NSArray *discussions = [aVarInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
             }
         }
     }

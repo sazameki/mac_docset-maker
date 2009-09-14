@@ -45,7 +45,7 @@ NSInteger DSCompareInfo(id anInfo1, id anInfo2, void *context)
 
 - (BOOL)appendValue:(NSString *)value
 {
-    NSArray *appendableTagNames = [NSArray arrayWithObjects:@"@param", @"@discussion", @"@return", nil];
+    NSArray *appendableTagNames = [NSArray arrayWithObjects:/*@"@param",*/ @"@discussion", @"@return", nil];
     
     if (![appendableTagNames containsObject:mTagName]) {
         return NO;
