@@ -28,8 +28,7 @@
         
         mPos = 0;
         mLength = [mSource length];
-        mClassInfos = [[NSMutableArray array] retain];
-        mGlobalInfos = [[NSMutableArray array] retain];
+        mInfos = [[NSMutableArray array] retain];
     }
     return self;
 }
@@ -38,8 +37,7 @@
 {
     [mSource release];
     [mPath release];
-    [mClassInfos release];
-    [mGlobalInfos release];
+    [mInfos release];
     [super dealloc];
 }
 
@@ -164,14 +162,10 @@
         if (c1 == '*' && c2 == '/') {
             mPos += 2;
             if (startC == '!') {
-                DSInformation *lastClassInfo = nil;
-                if ([mClassInfos count] > 0) {
-                    lastClassInfo = [mClassInfos lastObject];
-                }
-                if (lastClassInfo && currentInfo != lastClassInfo) {
-                    [lastClassInfo addChildInformation:currentInfo];
-                } else if (![currentInfo.tagName isEqualToString:@"@class"] && ![currentInfo.tagName isEqualToString:@"@struct"]) {
-                    [mGlobalInfos addObject:currentInfo];
+                if (mCurrentClassLevelInfo && currentInfo != mCurrentClassLevelInfo) {
+                    [mCurrentClassLevelInfo addChildInformation:currentInfo];
+                } else {
+                    [mInfos addObject:currentInfo];
                 }
             }
             break;
@@ -187,7 +181,9 @@
                 currentInfo.value = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
                 
                 if ([tagName isEqualToString:@"@class"] || [tagName isEqualToString:@"@struct"]) {
-                    [mClassInfos addObject:currentInfo];
+                    mCurrentClassLevelInfo = currentInfo;
+                } else if ([tagName isEqualToString:@"@function"]) {
+                    mCurrentClassLevelInfo = nil;
                 }
                 
                 DSInformation *declaredInInfo = [[DSInformation alloc] initWithTag:@"*declared-in"];
@@ -236,6 +232,9 @@
 - (BOOL)parse
 {
     @try {
+        int braceLevel = 0;
+        int classLevelBraceLevel = 0;
+        
         while ([self hasMoreCharacters]) {
             [self skipWhiteSpacesAndString];
             
@@ -250,12 +249,16 @@
                     if ([self parseNormalComment]) {
                         [self skipWhiteSpaces];
                         
+                        int declBraceLevel =  braceLevel;
                         unichar c1 = [self lookAtNextCharacter];
                         
                         NSMutableString *declStr = [NSMutableString string];
                         while ([self hasMoreCharacters]) {
                             unichar c = [self getNextCharacter];
                             if (c == '{' || c == ';' || c == '\r' || c== '\n') {
+                                if (c == '{') {
+                                    braceLevel++;
+                                }
                                 break;
                             }
                             [declStr appendFormat:@"%C", c];
@@ -269,17 +272,35 @@
                         DSInformation *declInfo = [[[DSInformation alloc] initWithTag:@"@declare"] autorelease];
                         declInfo.value = [declStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
                         [mLastInfo addChildInformation:declInfo];
+                        
+                        if ([mLastInfo.tagName isEqualToString:@"@class"] || [mLastInfo.tagName isEqualToString:@"@struct"]) {
+                            classLevelBraceLevel = declBraceLevel;
+                        }
                     }
                 } else if (c2 == '/') {
                     [self parseLineComment];
+                } else if (c2 == '{') {
+                    braceLevel++;
+                } else if (c2 == '}') {
+                    braceLevel--;
+                    if (classLevelBraceLevel == braceLevel) {
+                        mCurrentClassLevelInfo = nil;
+                    }
+                }
+            } else if (c1 == '{') {
+                braceLevel++;
+            } else if (c1 == '}') {
+                braceLevel--;
+                if (classLevelBraceLevel == braceLevel) {
+                    mCurrentClassLevelInfo = nil;
                 }
             }
         }
+        NSLog(@"Brace Level: %d (%@)", braceLevel, [mPath lastPathComponent]);
     } @catch (NSException *e) {
         NSLog(@"Failed to Parse: %@", mPath);
     } @finally {
-        [[DSInfoRepository sharedRepository] addInfos:mClassInfos];
-        [[DSInfoRepository sharedRepository] addInfos:mGlobalInfos];
+        [[DSInfoRepository sharedRepository] addInfos:mInfos];
     }
     
     return YES;

@@ -119,6 +119,10 @@ a:hover { color: #7b0; text-decoration: underline; }
 	padding-left: 30px;
 }
 
+.doc_body p.declare {
+	padding-left: 60px;
+}
+
 .doc_body ul {
 	list-style-type: none;
 }

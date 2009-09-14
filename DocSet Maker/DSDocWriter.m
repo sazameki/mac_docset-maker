@@ -21,15 +21,15 @@
         return NO;
     }
 
-    [htmlStr appendString:@"<h2>Instance Variables</h2>"];
+    [htmlStr appendString:@"<h2>Instance Variables</h2>\n\n"];
 
     for (DSInformation *aVarInfo in vars) {
-        [htmlStr appendFormat:@"<h3>%@</h3>", aVarInfo.value];
+        [htmlStr appendFormat:@"<h3>%@</h3>\n", aVarInfo.value];
 
         NSArray *decls = [aVarInfo childInfosWithTag:@"@declare"];
         if ([decls count] > 0) {
             DSInformation *declInfo = [decls objectAtIndex:0];
-            [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+            [htmlStr appendFormat:@"<p class=\"@declare\">%@</p>", declInfo.value];
         }
         
         NSArray *abstracts = [aVarInfo childInfosWithTag:@"@abstract"];
@@ -83,7 +83,7 @@
     }
     
     if ([classMethodInfos count] > 0) {
-        [htmlStr appendString:@"<h2>Class Methods</h2>"];
+        [htmlStr appendString:@"<h2>Class Methods</h2>\n\n"];
         
         for (DSInformation *aMethodInfo in classMethodInfos) {
             [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/clm/%@/%@\"></a>", aClassInfo.value, aMethodInfo.value];
@@ -92,7 +92,7 @@
             NSArray *decls = [aMethodInfo childInfosWithTag:@"@declare"];
             if ([decls count] > 0) {
                 DSInformation *declInfo = [decls objectAtIndex:0];
-                [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+                [htmlStr appendFormat:@"<p class=\"@declare\">%@</p>", declInfo.value];
             }
             
             NSArray *abstracts = [aMethodInfo childInfosWithTag:@"@abstract"];
@@ -161,7 +161,7 @@
             NSArray *decls = [aMethodInfo childInfosWithTag:@"@declare"];
             if ([decls count] > 0) {
                 DSInformation *declInfo = [decls objectAtIndex:0];
-                [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+                [htmlStr appendFormat:@"<p class=\"@declare\">%@</p>", declInfo.value];
             }
             
             NSArray *abstracts = [aMethodInfo childInfosWithTag:@"@abstract"];
@@ -428,7 +428,7 @@
         NSArray *decls = [aFunctionInfo childInfosWithTag:@"@declare"];
         if ([decls count] > 0) {
             DSInformation *declInfo = [decls objectAtIndex:0];
-            [htmlStr appendFormat:@"<p>%@</p>", declInfo.value];
+            [htmlStr appendFormat:@"<p class=\"@declare\">%@</p>", declInfo.value];
         }
         
         NSArray *abstracts = [aFunctionInfo childInfosWithTag:@"@abstract"];
@@ -568,7 +568,7 @@
                 decl = declInfo.value;
             }
             if (decl) {
-                [htmlStr appendFormat:@"%@", decl];
+                [htmlStr appendFormat:@"<p class=\"@declare\">%@</p>", decl];
             }
         }
     }

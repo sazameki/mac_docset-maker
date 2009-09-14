@@ -17,9 +17,9 @@
     unsigned    mLength;
     NSString    *mSource;
     
-    NSMutableArray  *mClassInfos;
-    NSMutableArray  *mGlobalInfos;
+    NSMutableArray  *mInfos;
     
+    DSInformation   *mCurrentClassLevelInfo;
     DSInformation   *mLastInfo;
 }
 
