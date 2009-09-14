@@ -154,6 +154,7 @@
 - (void)setRootPath:(NSString *)path
 {
     [mRootPath release];
+    
     mRootPath = [path copy];
 }
 
@@ -222,7 +223,6 @@
         [parser release];
     }
     
-    
     NSMutableDictionary *properties = [NSMutableDictionary dictionary];
     
     if (self.rootPath) {
@@ -248,9 +248,15 @@
         [properties setObject:self.copyright forKey:@"Copyright"];
     }
     
+    NSString *targetDirPath = [@"~/Desktop" stringByExpandingTildeInPath];
+    
+    NSString *currentMakerPath = [self fileName];
+    if (currentMakerPath) {
+        targetDirPath = [currentMakerPath stringByDeletingLastPathComponent];
+    }    
     
     DSDocWriter *writer = [[DSDocWriter alloc] init];
-    [writer writeDocumentAtPath:[@"~/Desktop" stringByExpandingTildeInPath] properties:properties];
+    [writer writeDocumentAtPath:targetDirPath properties:properties];
     [writer release];
 }
 

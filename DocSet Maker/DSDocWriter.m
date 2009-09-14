@@ -17,53 +17,79 @@
 - (BOOL)writeInstanceVariablesOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
 {
     NSArray *vars = [aClassInfo childInfosWithTag:@"@var"];
-    if ([vars count] == 0) {
-        return NO;
+    NSMutableArray *consts = [NSMutableArray array];
+    [consts addObjectsFromArray:[aClassInfo childInfosWithTag:@"@const"]];
+    [consts addObjectsFromArray:[aClassInfo childInfosWithTag:@"@constant"]];
+
+    if ([consts count] > 0) {
+        [htmlStr appendString:@"<h2>Constant Values</h2>\n\n"];
+        
+        for (DSInformation *aConstInfo in consts) {
+            [htmlStr appendFormat:@"<h3>%@</h3>\n", aConstInfo.value];
+
+            NSString *decl = [aConstInfo declaration];
+            if (decl) {
+                [htmlStr appendFormat:@"<p class=\"declare\">%@</p>\n", decl];
+            }
+            
+            NSArray *abstracts = [aConstInfo childInfosWithTag:@"@abstract"];
+            if ([abstracts count] > 0) {
+                DSInformation *abstractInfo = [abstracts objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+            }
+            
+            NSArray *discussions = [aConstInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+            }            
+        }
     }
+    
+    if ([vars count] > 0) {
+        [htmlStr appendString:@"<h2>Instance Variables</h2>\n\n"];
 
-    [htmlStr appendString:@"<h2>Instance Variables</h2>\n\n"];
+        for (DSInformation *aVarInfo in vars) {
+            [htmlStr appendFormat:@"<h3>%@</h3>\n", aVarInfo.value];
 
-    for (DSInformation *aVarInfo in vars) {
-        [htmlStr appendFormat:@"<h3>%@</h3>\n", aVarInfo.value];
+            NSString *decl = [aVarInfo declaration];
+            if (decl) {
+                [htmlStr appendFormat:@"<p class=\"declare\">%@</p>\n", decl];
+            }
+            
+            NSArray *abstracts = [aVarInfo childInfosWithTag:@"@abstract"];
+            if ([abstracts count] > 0) {
+                DSInformation *abstractInfo = [abstracts objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+            }
 
-        NSString *decl = [aVarInfo declaration];
-        if (decl) {
-            [htmlStr appendFormat:@"<p class=\"declare\">%@</p>\n", decl];
+            NSArray *discussions = [aVarInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+            }
+            
+            // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
+            /*
+            NSArray *declareds = [aVarInfo childInfosWithTag:@"*declared-in"];
+            if ([declareds count] > 0) {
+                DSInformation *declaredInfo = [declareds objectAtIndex:0];
+                [htmlStr appendString:@"<h5>Declared In</h5>"];
+                NSString *declaringFilePath = declaredInfo.value;
+                [htmlStr appendFormat:@"<p>%@</p>", [declaringFilePath lastPathComponent]];
+            } 
+             */
         }
-        
-        NSArray *abstracts = [aVarInfo childInfosWithTag:@"@abstract"];
-        if ([abstracts count] > 0) {
-            DSInformation *abstractInfo = [abstracts objectAtIndex:0];
-            [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
-        }
-
-        NSArray *discussions = [aVarInfo childInfosWithTag:@"@discussion"];
-        for (DSInformation *aDiscussInfo in discussions) {
-            [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
-        }
-        
-        // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
-        /*
-        NSArray *declareds = [aVarInfo childInfosWithTag:@"*declared-in"];
-        if ([declareds count] > 0) {
-            DSInformation *declaredInfo = [declareds objectAtIndex:0];
-            [htmlStr appendString:@"<h5>Declared In</h5>"];
-            NSString *declaringFilePath = declaredInfo.value;
-            [htmlStr appendFormat:@"<p>%@</p>", [declaringFilePath lastPathComponent]];
-        } 
-         */
     }
     
     return YES;
 }
 
-- (BOOL)writeMethodsOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
+- (BOOL)writeTasksOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
 {
     NSArray *methods = [aClassInfo childInfosWithTag:@"@method"];
     if ([methods count] == 0) {
         return NO;
     }
-    
+ 
     // Display Tasks
     if ([aClassInfo hasChildWithTag:@"@task"]) {
         [htmlStr appendString:@"<h2>Tasks</h2>\n\n"];
@@ -92,7 +118,16 @@
             [htmlStr appendString:@"</ul>\n"];
         }
     }
-    
+    return YES;
+}
+
+- (BOOL)writeMethodsOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
+{
+    NSArray *methods = [aClassInfo childInfosWithTag:@"@method"];
+    if ([methods count] == 0) {
+        return NO;
+    }
+
     NSMutableArray *classMethodInfos = [NSMutableArray array];
     NSMutableArray *instanceMethodInfos = [NSMutableArray array];
 
@@ -272,7 +307,7 @@
 
     [htmlStr appendString:@"<div class=\"doc_body\">"];
 
-    [htmlStr appendString:@"<p><a href=\"../../../index.html\">Back to TOC</a></p>"];
+    [htmlStr appendString:@"<p><a href=\"../../../toc.html\">Back to TOC</a></p>"];
     
     [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/cl/%@\"></a>", className];
     if (isStruct) {
@@ -297,6 +332,7 @@
         }
     }
 
+    [self writeTasksOfClassInfo:aClassInfo intoString:htmlStr];
     [self writeInstanceVariablesOfClassInfo:aClassInfo intoString:htmlStr];
     [self writeMethodsOfClassInfo:aClassInfo intoString:htmlStr];
 
@@ -323,10 +359,11 @@
     NSArray *functionInfos = [groupInfo childInfosWithTag:@"@function"];
 
     NSArray *structInfos = [groupInfo childInfosWithTag:@"@struct"];
+    NSArray *typedefInfos = [groupInfo childInfosWithTag:@"@typedef"];
     NSArray *enumInfos = [groupInfo childInfosWithTag:@"@enum"];
     NSArray *varInfos = [groupInfo childInfosWithTag:@"@var"];
 
-    if ([classInfos count] + [functionInfos count] + [structInfos count] + [enumInfos count] + [varInfos count] == 0) {
+    if ([classInfos count] + [functionInfos count] + [structInfos count] + [typedefInfos count] + [enumInfos count] + [varInfos count] == 0) {
         return;
     }
 
@@ -356,7 +393,7 @@
         [htmlStr appendString:@"    </div>\n\n"];
     }
     
-    if ([structInfos count] + [enumInfos count] + [varInfos count] > 0) {
+    if ([structInfos count] + [typedefInfos count] + [enumInfos count] + [varInfos count] > 0) {
         [htmlStr appendString:@"    <div class=\"ref_col3\">\n"];
         [htmlStr appendString:@"    <h3>Other References</h3>\n\n"];
         if ([structInfos count] > 0) {
@@ -368,12 +405,21 @@
             }
             [htmlStr appendString:@"    </ul>\n\n"];
         }
+        if ([typedefInfos count] > 0) {
+            typedefInfos = [typedefInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
+            [htmlStr appendString:@"    <h4>Data Types</h4>\n\n"];
+            [htmlStr appendString:@"    <ul>\n"];
+            for (DSInformation *aTypedefInfo in typedefInfos) {
+                [htmlStr appendFormat:@"        <li><a href=\"%@/DataTypes/index.html#//apple_ref/cpp/tdef/%@\">%@</a></li>\n", aGroupName, [aTypedefInfo docIdentifier], aTypedefInfo.value];
+            }
+            [htmlStr appendString:@"    </ul>\n\n"];
+        }
         if ([enumInfos count] > 0) {
             enumInfos = [enumInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
             [htmlStr appendString:@"    <h4>Enums</h4>\n\n"];
             [htmlStr appendString:@"    <ul>\n"];
             for (DSInformation *anEnumInfo in enumInfos) {
-                [htmlStr appendFormat:@"        <li><a href=\"%@/DataTypes/index.html#//apple_ref/cpp/tag/%@\">%@</a></li>\n", aGroupName, anEnumInfo.value, anEnumInfo.value];
+                [htmlStr appendFormat:@"        <li><a href=\"%@/DataTypes/index.html#//apple_ref/cpp/tag/%@\">%@</a></li>\n", aGroupName, [anEnumInfo docIdentifier], anEnumInfo.value];
             }
             [htmlStr appendString:@"    </ul>\n\n"];
         }
@@ -382,7 +428,7 @@
             [htmlStr appendString:@"    <h4>Variables</h4>\n\n"];
             [htmlStr appendString:@"    <ul>\n"];
             for (DSInformation *aVarInfo in varInfos) {
-                [htmlStr appendFormat:@"        <li><a href=\"%@/DataTypes/index.html#//apple_ref/cpp/data/%@\">%@</a></li>\n", aGroupName, aVarInfo.value, aVarInfo.value];
+                [htmlStr appendFormat:@"        <li><a href=\"%@/DataTypes/index.html#//apple_ref/cpp/data/%@\">%@</a></li>\n", aGroupName, [aVarInfo docIdentifier], aVarInfo.value];
             }
             [htmlStr appendString:@"    </ul>\n"];
         }
@@ -443,7 +489,7 @@
     [htmlStr appendString:@"<body>"];
     [htmlStr appendString:@"<div class=\"doc_body\">"];
 
-    [htmlStr appendString:@"<p><a href=\"../../index.html\">Back to TOC</a></p>"];
+    [htmlStr appendString:@"<p><a href=\"../../toc.html\">Back to TOC</a></p>"];
 
     [htmlStr appendFormat:@"<h1>%@ Functions</h1>", groupName];
 
@@ -464,16 +510,16 @@
             [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
         }
         
+        NSArray *discussions = [aFunctionInfo childInfosWithTag:@"@discussion"];
+        for (DSInformation *aDiscussInfo in discussions) {
+            [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+        }
+
         NSArray *returns = [aFunctionInfo childInfosWithTag:@"@return"];
         if ([returns count] > 0) {
             DSInformation *returnInfo = [returns objectAtIndex:0];
             [htmlStr appendString:@"<h5>Return Value</h5>"];
             [htmlStr appendFormat:@"<p>%@</p>", returnInfo.value];
-        }
-        
-        NSArray *discussions = [aFunctionInfo childInfosWithTag:@"@discussion"];
-        for (DSInformation *aDiscussInfo in discussions) {
-            [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
         }
         
         // TODO: Prepare any kind of switch to set whether we use "Declared in" or not.
@@ -505,6 +551,7 @@
 {
     NSString *otherFilePath = [dataTypeDirPath stringByAppendingPathComponent:@"index.html"];
     
+    NSArray *typedefInfos = [groupInfo childInfosWithTag:@"@typedef"];
     NSArray *enumInfos = [groupInfo childInfosWithTag:@"@enum"];
     NSArray *varInfos = [groupInfo childInfosWithTag:@"@var"];
 
@@ -521,13 +568,38 @@
     [htmlStr appendString:@"<body>"];
     [htmlStr appendString:@"<div class=\"doc_body\">"];
     
-    [htmlStr appendString:@"<p><a href=\"../../index.html\">Back to TOC</a></p>"];
+    [htmlStr appendString:@"<p><a href=\"../../toc.html\">Back to TOC</a></p>"];
     [htmlStr appendFormat:@"<h1>%@ Other References</h1>", groupInfo.value];
     
+    if ([typedefInfos count] > 0) {
+        typedefInfos = [typedefInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
+
+        [htmlStr appendString:@"<h2>Data Types</h2>"];
+
+        for (DSInformation *aTypedefInfo in typedefInfos) {
+            [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/tdef/%@\"></a>\n", [aTypedefInfo docIdentifier]];
+            [htmlStr appendFormat:@"<h3>%@</h3>", aTypedefInfo.value];
+
+            NSArray *abstracts = [aTypedefInfo childInfosWithTag:@"@abstract"];
+            if ([abstracts count] > 0) {
+                DSInformation *abstractInfo = [abstracts objectAtIndex:0];
+                [htmlStr appendFormat:@"<p>%@</p>", abstractInfo.value];
+            }            
+            
+            NSArray *discussions = [aTypedefInfo childInfosWithTag:@"@discussion"];
+            for (DSInformation *aDiscussInfo in discussions) {
+                [htmlStr appendFormat:@"<p>%@</p>", aDiscussInfo.value];
+            }
+        }
+    }
+    
     if ([enumInfos count] > 0) {
-        [htmlStr appendString:@"<h2>Enumerations</h2>"];
         enumInfos = [enumInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
+
+        [htmlStr appendString:@"<h2>Enumerations</h2>"];
+
         for (DSInformation *anEnumInfo in enumInfos) {
+            [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/tag/%@\"></a>\n", [anEnumInfo docIdentifier]];
             [htmlStr appendFormat:@"<h3>enum %@ {<br />", anEnumInfo.value];
             
             NSMutableArray *enumConstInfos = [NSMutableArray array];
@@ -589,6 +661,7 @@
         varInfos = [varInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
 
         for (DSInformation *aVarInfo in varInfos) {
+            [htmlStr appendFormat:@"<a name=\"//apple_ref/cpp/data/%@\"></a>\n", [aVarInfo docIdentifier]];
             [htmlStr appendFormat:@"<h3>%@</h3>", aVarInfo.value];
 
             NSString *decl = [aVarInfo declaration];
@@ -794,6 +867,83 @@
     [task release];
 }
 
+- (BOOL)writeListFileAtPath:(NSString *)listFilePath properties:(NSDictionary *)properties
+{
+    NSMutableString *htmlStr = [NSMutableString string];
+    
+    [htmlStr appendString:@"<html lang=\"ja\">\n"];
+    [htmlStr appendString:@"<head>\n"];
+    [htmlStr appendString:@"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n"];
+    [htmlStr appendString:@"  <link rel=\"stylesheet\" href=\"css/adcstyle.css\" type=\"text/css\" />\n"];
+    [htmlStr appendString:@"  <link rel=\"stylesheet\" href=\"css/karakuri_style.css\" type=\"text/css\" />\n"];
+    [htmlStr appendFormat:@"  <title>%@ Class List</title>\n", [properties objectForKey:@"DocSet Name"]];
+    [htmlStr appendString:@"</head>\n\n"];
+    
+    [htmlStr appendString:@"<body class=\"list\">\n"];
+    [htmlStr appendString:@"<div class=\"list_body\">\n"];
+    [htmlStr appendFormat:@"  <h1><a href=\"toc.html\" target=\"toc\">%@</a></h1>\n", [properties objectForKey:@"DocSet Name"]];
+    [htmlStr appendString:@"  <h2>All Classes</h2>\n\n"];
+    [htmlStr appendString:@"  <ul>\n"];
+
+    NSMutableArray *allClassInfos = [NSMutableArray array];
+    
+    NSArray *groupNames = [[DSInfoRepository sharedRepository] groupNames];
+    for (NSString *aGroupName in groupNames) {
+        DSInformation *groupInfo = [[DSInfoRepository sharedRepository] groupInfoForName:aGroupName];
+        [allClassInfos addObjectsFromArray:[groupInfo childInfosWithTag:@"@class"]];
+    }
+    
+    NSArray *theAllClassInfos = [allClassInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
+
+    for (DSInformation *aClassInfo in theAllClassInfos) {
+        NSString *theGroupName = nil;
+        for (NSString *aGroupName in groupNames) {
+            DSInformation *theGroupInfo = [[DSInfoRepository sharedRepository] groupInfoForName:aGroupName];
+            if ([[theGroupInfo childInfosWithTag:@"@class"] containsObject:aClassInfo]) {
+                theGroupName = aGroupName;
+                break;
+            }
+        }
+        if (theGroupName) {
+            [htmlStr appendFormat:@"    <li><a href=\"%@/Classes/%@/index.html#//apple_ref/cpp/cl/%@\" target=\"toc\">%@</a></li>\n", theGroupName, aClassInfo.value, [aClassInfo docIdentifier], aClassInfo.value];
+        }
+    }
+
+    [htmlStr appendString:@"  </ul>\n"];
+
+    [htmlStr appendString:@"</div>\n"];
+    [htmlStr appendString:@"</body>\n"];
+    
+    [htmlStr appendString:@"</html>\n\n"];
+    
+    NSData *htmlData = [htmlStr dataUsingEncoding:NSUTF8StringEncoding];
+    [htmlData writeToFile:listFilePath atomically:NO];
+    
+    return YES;    
+}
+
+- (BOOL)writeIndexFileAtPath:(NSString *)indexFilePath properties:(NSDictionary *)properties
+{
+    NSMutableString *htmlStr = [NSMutableString string];
+    
+    [htmlStr appendString:@"<html lang=\"ja\">\n"];
+    [htmlStr appendString:@"<head>\n"];
+    [htmlStr appendFormat:@"  <title>%@ Reference Library</title>\n", [properties objectForKey:@"DocSet Name"]];
+    [htmlStr appendString:@"</head>\n\n"];
+    
+    [htmlStr appendString:@"<frameset cols=\"170px,*\" frameborder=\"0\">\n"];
+    [htmlStr appendString:@"  <frame src=\"list.html\" name=\"list\">\n"];
+    [htmlStr appendString:@"  <frame src=\"toc.html\" name=\"toc\">\n"];
+    [htmlStr appendString:@"</frameset>\n"];
+    
+    [htmlStr appendString:@"</html>\n\n"];
+    
+    NSData *htmlData = [htmlStr dataUsingEncoding:NSUTF8StringEncoding];
+    [htmlData writeToFile:indexFilePath atomically:NO];
+    
+    return YES;
+}
+
 - (BOOL)writeDocumentAtPath:(NSString *)path properties:(NSDictionary *)properties
 {
     NSString *docSetPath = [[path stringByAppendingPathComponent:[properties objectForKey:@"Bundle Identifier"]] stringByAppendingPathExtension:@"docset"];
@@ -835,12 +985,22 @@
         [self writeGroupDocForName:aGroupName path:groupDirPath properties:properties];
     }
     
-    NSString *tocFilePath = [docsPath stringByAppendingPathComponent:@"index.html"];
+    NSString *tocFilePath = [docsPath stringByAppendingPathComponent:@"toc.html"];
     if (![self writeTOCFileAtPath:tocFilePath properties:properties]) {
         return NO;
     }
     
-    [self makeIndexForDocSetAtPath:docSetPath];
+    NSString *listFilePath = [docsPath stringByAppendingPathComponent:@"list.html"];
+    if (![self writeListFileAtPath:listFilePath properties:properties]) {
+        return NO;
+    }
+
+    NSString *indexFilePath = [docsPath stringByAppendingPathComponent:@"index.html"];
+    if (![self writeIndexFileAtPath:indexFilePath properties:properties]) {
+        return NO;
+    }
+    
+//    [self makeIndexForDocSetAtPath:docSetPath];
 
     return YES;
 }
