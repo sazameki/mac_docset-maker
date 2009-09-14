@@ -57,11 +57,40 @@
     return YES;
 }
 
-- (BOOL)writeInstanceMethodsOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
+- (BOOL)writeMethodsOfClassInfo:(DSInformation *)aClassInfo intoString:(NSMutableString *)htmlStr
 {
     NSArray *methods = [aClassInfo childInfosWithTag:@"@method"];
     if ([methods count] == 0) {
         return NO;
+    }
+    
+    // Display Tasks
+    if ([aClassInfo hasChildWithTag:@"@task"]) {
+        [htmlStr appendString:@"<h2>Tasks</h2>\n\n"];
+        
+        BOOL hasDisplayedTask = NO;
+        
+        NSArray *childInfos = [aClassInfo allChildInfos];
+        for (DSInformation *aChildInfo in childInfos) {
+            if ([aChildInfo.tagName isEqualToString:@"@task"]) {
+                if (hasDisplayedTask) {
+                    [htmlStr appendString:@"</ul>\n"];
+                }
+                [htmlStr appendFormat:@"<h3>%@</h3>\n\n", aChildInfo.value];
+                [htmlStr appendString:@"<ul>\n"];
+                hasDisplayedTask = YES;
+            } else if (hasDisplayedTask && [aChildInfo.tagName isEqualToString:@"@method"]) {
+                NSString *decl = [aChildInfo declaration];
+                if ([decl hasPrefix:@"static"]) {
+                    [htmlStr appendFormat:@"<li><a href=\"#//apple_ref/cpp/clm/%@/%@\">%@</a></li>\n", aClassInfo.value, [aChildInfo docIdentifier], decl];
+                } else {
+                    [htmlStr appendFormat:@"<li><a href=\"#//apple_ref/cpp/instm/%@/%@\">%@</a></li>\n", aClassInfo.value, [aChildInfo docIdentifier], decl];
+                }
+            }
+        }
+        if (hasDisplayedTask) {
+            [htmlStr appendString:@"</ul>\n"];
+        }
     }
     
     NSMutableArray *classMethodInfos = [NSMutableArray array];
@@ -269,7 +298,7 @@
     }
 
     [self writeInstanceVariablesOfClassInfo:aClassInfo intoString:htmlStr];
-    [self writeInstanceMethodsOfClassInfo:aClassInfo intoString:htmlStr];
+    [self writeMethodsOfClassInfo:aClassInfo intoString:htmlStr];
 
     [htmlStr appendString:@"<div class=\"doc_footer\">"];
     [htmlStr appendFormat:@"%@", [properties objectForKey:@"Copyright"]];
@@ -497,6 +526,7 @@
     
     if ([enumInfos count] > 0) {
         [htmlStr appendString:@"<h2>Enumerations</h2>"];
+        enumInfos = [enumInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
         for (DSInformation *anEnumInfo in enumInfos) {
             [htmlStr appendFormat:@"<h3>enum %@ {<br />", anEnumInfo.value];
             
@@ -555,7 +585,9 @@
     
     if ([varInfos count] > 0) {
         [htmlStr appendString:@"<h2>Variables</h2>"];
-        
+
+        varInfos = [varInfos sortedArrayUsingFunction:DSCompareInfo context:nil];
+
         for (DSInformation *aVarInfo in varInfos) {
             [htmlStr appendFormat:@"<h3>%@</h3>", aVarInfo.value];
 

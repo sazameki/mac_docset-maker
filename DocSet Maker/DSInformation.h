@@ -25,6 +25,9 @@
 - (void)addChildInformation:(DSInformation *)anInfo;
 
 - (NSArray *)childInfosWithTag:(NSString *)tag;
+- (NSArray *)allChildInfos;
+
+- (BOOL)hasChildWithTag:(NSString *)tag;
 
 - (NSString *)declaration;
 - (NSString *)docIdentifier;

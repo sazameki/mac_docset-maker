@@ -72,6 +72,21 @@ NSInteger DSCompareInfo(id anInfo1, id anInfo2, void *context)
     return ret;
 }
 
+- (NSArray *)allChildInfos
+{
+    return mChildInfos;
+}
+
+- (BOOL)hasChildWithTag:(NSString *)tag
+{
+    for (DSInformation *aChildInfo in mChildInfos) {
+        if ([aChildInfo.tagName isEqualToString:tag]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (NSString *)declaration
 {
     NSString *decl = nil;

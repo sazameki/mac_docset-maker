@@ -226,7 +226,7 @@
             }
         }
     }
-
+    
     if (startC == '!' && currentInfo) {
         if (mCurrentClassLevelInfo) {
             if (currentInfo != mCurrentClassLevelInfo) {
@@ -274,33 +274,35 @@
                     if ([self parseNormalComment]) {
                         [self skipWhiteSpaces];
                         
-                        int declBraceLevel =  braceLevel;
-                        unichar c1 = [self lookAtNextCharacter];
-                        
-                        NSMutableString *declStr = [NSMutableString string];
-                        while ([self hasMoreCharacters]) {
-                            unichar c = [self getNextCharacter];
-                            if (c == '{' || c == ';' || c == '\r' || c== '\n') {
-                                if (c == '{') {
-                                    braceLevel++;
+                        if (![mLastInfo.tagName isEqualToString:@"@task"]) {
+                            int declBraceLevel =  braceLevel;
+                            unichar c1 = [self lookAtNextCharacter];
+                            
+                            NSMutableString *declStr = [NSMutableString string];
+                            while ([self hasMoreCharacters]) {
+                                unichar c = [self getNextCharacter];
+                                if (c == '{' || c == ';' || c == '\r' || c== '\n') {
+                                    if (c == '{') {
+                                        braceLevel++;
+                                    }
+                                    break;
                                 }
-                                break;
+                                [declStr appendFormat:@"%C", c];
+                                
+                                // Support for Macros
+                                if (c1 == '#' && c == ')') {
+                                    break;
+                                }
                             }
-                            [declStr appendFormat:@"%C", c];
-
-                            // Support for Macros
-                            if (c1 == '#' && c == ')') {
-                                break;
+                            
+                            DSInformation *declInfo = [[[DSInformation alloc] initWithTag:@"@declare"] autorelease];
+                            declInfo.value = [declStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                            [mLastInfo addChildInformation:declInfo];
+                            
+                            if ([mLastInfo.tagName isEqualToString:@"@class"] || [mLastInfo.tagName isEqualToString:@"@struct"]) {
+                                classLevelBraceLevel = declBraceLevel;
                             }
-                        }
-
-                        DSInformation *declInfo = [[[DSInformation alloc] initWithTag:@"@declare"] autorelease];
-                        declInfo.value = [declStr stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                        [mLastInfo addChildInformation:declInfo];
-                        
-                        if ([mLastInfo.tagName isEqualToString:@"@class"] || [mLastInfo.tagName isEqualToString:@"@struct"]) {
-                            classLevelBraceLevel = declBraceLevel;
-                        }
+                        }                        
                     }
                 } else if (c2 == '/') {
                     [self parseLineComment];
