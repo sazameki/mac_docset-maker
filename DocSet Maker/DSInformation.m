@@ -128,6 +128,9 @@ NSInteger DSCompareInfo(id anInfo1, id anInfo2, void *context)
         } else if (c == '&') {
             [ret appendString:@"@"];
             wasSpace = NO;
+        } else if (c == '<' || c == '>') {
+            [ret appendString:@"@"];
+            wasSpace = NO;
         } else {
             [ret appendFormat:@"%C", c];
             wasSpace = NO;

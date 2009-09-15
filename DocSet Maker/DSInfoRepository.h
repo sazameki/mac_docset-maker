@@ -25,6 +25,7 @@
 - (NSArray *)groupInfos;
 
 - (NSArray *)groupNames;
+- (NSArray *)sortedGroupNames;
 - (DSInformation *)groupInfoForName:(NSString *)groupName;
 
 @end

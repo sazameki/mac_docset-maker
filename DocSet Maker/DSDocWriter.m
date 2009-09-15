@@ -478,7 +478,7 @@
     [htmlStr appendString:@"<div class=\"toc_body\">\n"];
     [htmlStr appendFormat:@"  <h1>%@ Reference Library</h1>\n\n", [properties objectForKey:@"DocSet Name"]];
     
-    NSArray *groupNames = [[DSInfoRepository sharedRepository] groupNames];
+    NSArray *groupNames = [[DSInfoRepository sharedRepository] sortedGroupNames];
     for (NSString *aGroupName in groupNames) {
         [self writeTOCGroupInfo:aGroupName toString:htmlStr];
     }
@@ -1011,29 +1011,42 @@
     }
 
     // Write groups
-    NSArray *groupNames = [[DSInfoRepository sharedRepository] groupNames];
-    for (NSString *aGroupName in groupNames) {
-        NSString *groupDirPath = [docsPath stringByAppendingPathComponent:aGroupName];
-        [fileManager createDirectoryAtPath:groupDirPath attributes:nil];
-        [self writeGroupDocForName:aGroupName path:groupDirPath properties:properties];
+    {
+        NSArray *groupNames = [[DSInfoRepository sharedRepository] groupNames];
+        
+        for (NSString *aGroupName in groupNames) {
+            NSString *groupDirPath = [docsPath stringByAppendingPathComponent:aGroupName];
+            [fileManager createDirectoryAtPath:groupDirPath attributes:nil];
+            [self writeGroupDocForName:aGroupName path:groupDirPath properties:properties];
+        }
     }
     
-    NSString *tocFilePath = [docsPath stringByAppendingPathComponent:@"toc.html"];
-    if (![self writeTOCFileAtPath:tocFilePath properties:properties]) {
-        return NO;
+    // Write out TOC file
+    {
+        NSString *tocFilePath = [docsPath stringByAppendingPathComponent:@"toc.html"];
+        if (![self writeTOCFileAtPath:tocFilePath properties:properties]) {
+            return NO;
+        }
     }
     
-    NSString *listFilePath = [docsPath stringByAppendingPathComponent:@"list.html"];
-    if (![self writeListFileAtPath:listFilePath properties:properties]) {
-        return NO;
+    // Write out list file
+    {
+        NSString *listFilePath = [docsPath stringByAppendingPathComponent:@"list.html"];
+        if (![self writeListFileAtPath:listFilePath properties:properties]) {
+            return NO;
+        }
     }
 
-    NSString *indexFilePath = [docsPath stringByAppendingPathComponent:@"index.html"];
-    if (![self writeIndexFileAtPath:indexFilePath properties:properties]) {
-        return NO;
+    // Write out index page file (frame)
+    {
+        NSString *indexFilePath = [docsPath stringByAppendingPathComponent:@"index.html"];
+        if (![self writeIndexFileAtPath:indexFilePath properties:properties]) {
+            return NO;
+        }
     }
     
-//    [self makeIndexForDocSetAtPath:docSetPath];
+    // Make DocSet index
+    [self makeIndexForDocSetAtPath:docSetPath];
 
     return YES;
 }

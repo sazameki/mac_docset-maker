@@ -52,6 +52,27 @@ static DSInfoRepository *_instance = nil;
     return ret;
 }
 
+- (NSArray *)sortedGroupNames
+{
+    // Sort specific for Karakuri Framework just now (2009/09/15)
+    // TODO: Prepare any kind of setting method for users
+    NSArray *priorGroupNames = [NSArray arrayWithObjects:@"Game Foundation", @"Game 2D Graphics", @"Game Audio", @"Game Text Processing", @"Game Controls", @"Game 2D Simulator", @"Game Network", nil];
+    
+    NSMutableArray *ret = [NSMutableArray array];
+    NSMutableArray *groupNames = [NSMutableArray arrayWithArray:[self groupNames]];
+    
+    for (NSString *aPriorGroupName in priorGroupNames) {
+        if ([groupNames containsObject:aPriorGroupName]) {
+            [ret addObject:aPriorGroupName];
+        }
+    }
+    
+    [groupNames removeObjectsInArray:ret];
+    [ret addObjectsFromArray:groupNames];
+    
+    return ret;
+}
+
 - (DSInformation *)groupInfoForName:(NSString *)groupName
 {
     DSInformation *ret = nil;
